@@ -321,7 +321,7 @@ export default class FlatDisplay extends XRDisplay {
                         XRDisplay.TRACKING_CHANGED, 
                         {
                             source: this,
-                            detail: ev.detail
+                            detail: ev.detail[0]
                         }
                     )
                 );

@@ -11042,7 +11042,7 @@ var FlatDisplay = function (_XRDisplay) {
 			try {
 				this.dispatchEvent(new CustomEvent(_XRDisplay3.default.TRACKING_CHANGED, {
 					source: this,
-					detail: ev.detail
+					detail: ev.detail[0]
 				}));
 			} catch (e) {
 				console.error('trackingChanged callback error', e);

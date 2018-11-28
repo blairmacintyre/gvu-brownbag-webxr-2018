@@ -4,7 +4,7 @@
 <h2>Are you sitting comfortably?  Let's make sure.</h2>
 <br>
 <br>
-Please look around to map the space
+Please look around to map the space, wait for things to load and become smooth.  Then go to the next slide.
 <br>
 <br>
 <br>
@@ -24,7 +24,7 @@ Please look around to map the space
 <br>
 <br>
 <br>
-Just setting a few things up. 
+Look around, make sure "World Mapping Ready" is displayed, and that tracking is running fine.   Then go to the next slide. 
 <br>
 <br>
 <br>
@@ -40,7 +40,7 @@ Just setting a few things up.
 <br>
 <br>
 <br>
-Just cleaning up. 
+Wait for things to stablize. 
 <br>
 <br>
 <br>

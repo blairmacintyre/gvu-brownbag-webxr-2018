@@ -1,6 +1,18 @@
 //
 // Plumbob model from "https://sketchfab.com/models/ddcfc38215764692823b2e1e31924071" by Anthony Z. Davis on Sketchfab
-
+//
+// Crystal stone model from GenEugene "https://sketchfab.com/geneugene" on Sketchfab
+// "https://sketchfab.com/models/1ad829e2f464446fa4945562ab611255"
+//
+// Sci-fi Crate model from Darren Mcnerney "https://sketchfab.com/DarrenMcnerneyPortfolio" on SketchFab
+// "https://sketchfab.com/models/0e60a62a8f1e4048b638a32eb0661015"
+//
+// Birch Tree - Smashy Craft Series - Free,  Pine Tree - Smashy Craft Series - Free, Grassland Tree - Smashy Craft Series - Free
+// models from BitGem "https://sketchfab.com/bitgem" on Sketchfab
+// <a href="https://sketchfab.com/models/f0203eb84beb4d638d148e2116f5dbf7"
+// <a href="https://sketchfab.com/models/08014e92a59244c992884091218230b8"
+// <a href="https://sketchfab.com/models/1539bad802904a619f4fe1f1694229b0"
+        
 var sharedState = {
     setWorldMap: null,
     doProcessing: true,
@@ -8,7 +20,7 @@ var sharedState = {
     doCV: false,
     getMap: 0,
     prevGetMap: 0,
-    doRender3D: false,
+    xrSlide: false,
     showArScene: false,
     showVrScene: false
 }
@@ -16,6 +28,15 @@ var sharedState = {
 class PageApp extends XRExampleBase {
     constructor(domElement){
         super(domElement, false, true, true, true)
+
+        this.textBox = document.createElement('span')
+        this.textBox.setAttribute('class', 'ar-text-box')
+        this.textBox.innerText = ''
+        this.textBox.visibility = false;
+
+        domElement.parentNode.insertBefore(this.textBox, domElement)
+        this.trackingState = "unknown";
+
         this.clock = new THREE.Clock()
 		this._tapEventData = null // Will be filled in on touch start and used in updateScene
         this.meshes = []
@@ -64,16 +85,16 @@ class PageApp extends XRExampleBase {
             0xff99ff
         ]
 
-        const loader = new THREE.BinaryLoader()
-        loader.load('./resources/webxr/examples/models/female02/Female02_bin.js', geometry => {
-            this.femaleGeometry = geometry.vertices
-            this.geometries.push(this.femaleGeometry)
-            //this.floorGroup.add(this.createSceneGraphNode())
-        })
-        loader.load('./resources/webxr/examples/models/male02/Male02_bin.js', geometry => {
-            this.maleGeometry = geometry.vertices
-            this.geometries.push(this.maleGeometry)
-        })
+        // const loader = new THREE.BinaryLoader()
+        // loader.load('./resources/webxr/examples/models/female02/Female02_bin.js', geometry => {
+        //     this.femaleGeometry = geometry.vertices
+        //     this.geometries.push(this.femaleGeometry)
+        //     //this.floorGroup.add(this.createSceneGraphNode())
+        // })
+        // loader.load('./resources/webxr/examples/models/male02/Male02_bin.js', geometry => {
+        //     this.maleGeometry = geometry.vertices
+        //     this.geometries.push(this.maleGeometry)
+        // })
 
         var renderModel = new THREE.RenderPass( this.scene, this.camera );
         
@@ -156,6 +177,7 @@ class PageApp extends XRExampleBase {
 
         this.session.addEventListener(XRSession.NEW_WORLD_ANCHOR, this._handleNewWorldAnchor.bind(this))
         this.session.addEventListener(XRSession.REMOVE_WORLD_ANCHOR, this._handleRemoveWorldAnchor.bind(this))
+        this.session.addEventListener(XRSession.TRACKING_CHANGED, this._handleTrackingChanged.bind(this))
     }
 
     setDoCV (doit) {
@@ -168,7 +190,7 @@ class PageApp extends XRExampleBase {
     }
 
 	doRender(){
-        if (!sharedState.doRender3D) { return; }
+        if (!sharedState.xrSlide) { return; }
 
         if (sharedState.doProcessing) {
             this.renderer.clear();
@@ -178,6 +200,9 @@ class PageApp extends XRExampleBase {
         }
 	}
 
+    _handleTrackingChanged(event) {
+        this.trackingState = event.detail
+    }
 
     _handleRemoveWorldAnchor(event) {
         let anchor = event.detail
@@ -226,6 +251,46 @@ class PageApp extends XRExampleBase {
             }
         }
 
+
+        // #define WEB_AR_TRACKING_STATE_NORMAL               @"ar_tracking_normal"
+        // #define WEB_AR_TRACKING_STATE_LIMITED              @"ar_tracking_limited"
+        // #define WEB_AR_TRACKING_STATE_LIMITED_INITIALIZING @"ar_tracking_limited_initializing"
+        // #define WEB_AR_TRACKING_STATE_LIMITED_MOTION       @"ar_tracking_limited_excessive_motion"
+        // #define WEB_AR_TRACKING_STATE_LIMITED_FEATURES     @"ar_tracking_limited_insufficient_features"
+        // #define WEB_AR_TRACKING_STATE_NOT_AVAILABLE        @"ar_tracking_not_available"
+        // #define WEB_AR_TRACKING_STATE_RELOCALIZING         @"ar_tracking_relocalizing"
+        var msgText = "";
+        switch (this.trackingState) {
+            case "unknown": // the initial value
+            case "ar_tracking_normal":
+            break;
+
+            case "ar_tracking_limited":
+                msgText = "Spatial Tracking <em>Functionality is Limited<em>"
+            break;
+    
+            case "ar_tracking_limited_initializing":
+                msgText = "Spatial Tracking <em>Initializing</em>"
+            break;
+        
+            case "ar_tracking_limited_excessive_motion":
+                msgText = "Spatial Tracking <em>Too Much Motion</em>"
+            break;
+            
+            case "ar_tracking_limited_insufficient_features":
+                msgText = "Spatial Tracking <em>Too Much Motion</em>"
+            break;
+            
+            case "ar_tracking_not_available":
+                msgText = "Spatial Tracking <b>Unavailable</b>"        
+            break;
+
+            case "ar_tracking_relocalizing":
+                msgText = "Spatial Tracking <b>Relocalizing</b><br>If relocalization does not succeed,<br>reset tracking system from menu"        
+            break;
+        }
+        //console.log ("tracking state: " + msgText)
+
         // update from shared state
         if (sharedState.doCV != this.doCV) {
             this.setDoCV(sharedState.doCV)
@@ -252,6 +317,7 @@ class PageApp extends XRExampleBase {
 
         // only do this in the master!  
         if (this.isMaster) {
+            var moreText = (msgText === "" ? "" : msgText + "<br>")
             switch (sharedState.getMap) {
                 // case 1 happens in both client and master
                 case 1:
@@ -275,24 +341,59 @@ class PageApp extends XRExampleBase {
                         }
                         this.setupSharedAnchor(anchor)
                     }
+
+                    // possible values:
+                    // #define WEB_AR_WORLDMAPPING_NOT_AVAILABLE   @"ar_worldmapping_not_available"
+                    // #define WEB_AR_WORLDMAPPING_LIMITED         @"ar_worldmapping_limited"
+                    // #define WEB_AR_WORLDMAPPING_EXTENDING       @"ar_worldmapping_extending"
+                    // #define WEB_AR_WORLDMAPPING_MAPPED          @"ar_worldmapping_mapped"
+                    var moreText = (msgText === "" ? "" : msgText + "<br>")
+                    switch (this.session.getWorldMappingStatus()) {
+                        case "ar_worldmapping_not_available":
+                        moreText += "<b>World Map Not Ready</b>, look around the room"
+                        break;
+
+                        case "ar_worldmapping_limited":
+                        moreText += "<em>World Map of Limited Quality</em>, look around the room"
+                        break;
+
+                        case "ar_worldmapping_extending":
+                        moreText += "<em>World Map Ready</em>, extending..."
+                        break;
+
+                        case "ar_worldmapping_mapped":
+                        moreText += "<em>World Map Ready</em>"
+                        break;
+                    }
+                    msgText = moreText;
+                    //console.log ("tracking state: " + msgText)
                     break;
 
                 case 3:
                     // reset it, only want to act on transition
-                    sharedState.getMap = -1;
+                    sharedState.getMap = -3;
+                    
+                    // only if we are coming from slide 2
+                    if (sharedState.prevGetMap === 2) {
+                        this.session.getWorldMap().then(worldMap => {
+                            console.log("got worldMap, size = ", worldMap.worldMap.length)
 
-                    this.session.getWorldMap().then(worldMap => {
-                        console.log("got worldMap, size = ", worldMap.worldMap.length)
-
-                        for (var i=0; i < worldMap.anchors.length; i++) {
-                            console.log("anchor: ", worldMap.anchors[i].name, "  pose: ", worldMap.anchors[i].transform )
-                        }
-                        RevealMultiARMaster.postMap(worldMap);
-                    }).catch(err => {
-                        console.error('Could not get world Map', err)
-                    });
-                    break;
+                            for (var i=0; i < worldMap.anchors.length; i++) {
+                                console.log("anchor: ", worldMap.anchors[i].name, "  pose: ", worldMap.anchors[i].transform )
+                            }
+                            RevealMultiARMaster.postMap(worldMap);
+                        }).catch(err => {
+                            console.error('Could not get world Map', err)
+                        });
+                    }
+                    
             }
+        }
+        if (msgText.length > 0 && sharedState.xrSlide) {
+            this.textBox.innerHTML = msgText
+            this.textBox.style.visibility = "visible";
+        } else {
+            this.textBox.style.visibility = "hidden";
         }
 
         if (this.markers.length > 0) {
@@ -502,13 +603,13 @@ class PageApp extends XRExampleBase {
             new THREE.MeshPhongMaterial({ color: '#FF00DD' })
         )
         box2.position.set(0, 0, 0)
-        this.sharedAnchorNode.add(box2)
+        //this.sharedAnchorNode.add(box2)
 
         // something else for the shared anchor
         this.dynamicSharedAnchorNode = new THREE.Group()
         var geometry = new THREE.SphereGeometry( 0.05, 10, 7 );
         var material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
-        this.dynamicSharedAnchorNode.add( new THREE.Mesh( geometry, material ) );
+        //this.dynamicSharedAnchorNode.add( new THREE.Mesh( geometry, material ) );
 
         this.sharedAnchorNode.add(this.dynamicSharedAnchorNode)
         this.dynamicSharedAnchorNode.matrixAutoUpdate = false;
@@ -548,6 +649,57 @@ class PageApp extends XRExampleBase {
             console.error('could not load ducky gltf', ...params)
         })
 
+        this.stone = new THREE.Group();
+        this.dynamicSharedAnchorNode.add(this.stone)
+        loadGLTF('./resources/models/crystal_stone/scene.gltf').then(gltf => {
+            this.stone.add(gltf.scene);
+            gltf.scene.scale.set(0.025,0.025, 0.025)
+        }).catch((...params) =>{
+            console.error('could not load stone gltf', ...params)
+        })
+
+        this.crate = new THREE.Group();
+        this.sharedAnchorNode.add(this.crate)
+        loadGLTF('./resources/models/sci-fi_crate/scene.gltf').then(gltf => {
+            this.crate.add(gltf.scene);
+            gltf.scene.scale.set(0.05,0.05, 0.05)
+        }).catch((...params) =>{
+            console.error('could not load crate gltf', ...params)
+        })
+
+        this.trees = [];
+        this.trees[0] = new THREE.Group();
+        loadGLTF('./resources/models/birch_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[0].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+        }).catch((...params) =>{
+            console.error('could not load birch gltf', ...params)
+        })
+
+        this.trees[1] = new THREE.Group();
+        loadGLTF('./resources/models/grassland_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[1].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+        }).catch((...params) =>{
+            console.error('could not load grassland tree gltf', ...params)
+        })
+
+        this.trees[2] = new THREE.Group();
+        loadGLTF('./resources/models/pine_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[2].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+        }).catch((...params) =>{
+            console.error('could not load pine tree gltf', ...params)
+        })
+
+        this.trees[3] = new THREE.Group();
+        loadGLTF('./resources/models/police_officer_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[3].add(gltf.scene);
+            gltf.scene.scale.set(0.003,0.003, 0.003)
+        }).catch((...params) =>{
+            console.error('could not load police officer gltf', ...params)
+        })
+
         // loadGLTF('./resources/models/the_sims_-_plumbob/scene.gltf').then(gltf => {
         //     this.plumbbob = gltf.scene;
         //     gltf.scene.scale.set(0.001,0.001, 0.001)
@@ -560,57 +712,64 @@ class PageApp extends XRExampleBase {
 
     createSceneGraphNode(){
         const group = new THREE.Group()
-        group.add(this.createMesh(
-            this.geometries[Math.floor(this.geometries.length * Math.random())], 
-            0.003,
-            0,0,0, 
-            0.005, 
-            this.colors[Math.floor(this.colors.length * Math.random())],
-            true
-        ))
+        var model = this.trees.shift();
+        this.trees.push(model)
+        group.add(model);
         return group
     }
 
-    createMesh(originalGeometry, scale, x, y, z, pointSize, color, dynamic){
-        let i, c, mesh, p
-        let vertices = originalGeometry
-        let vl = vertices.length
-        let geometry = new THREE.Geometry()
-        let vertices_tmp = []
-        for (i = 0; i < vl; i ++){
-            p = vertices[i]
-            geometry.vertices[i] = p.clone()
-            vertices_tmp[i] = [p.x, p.y, p.z, 0, 0]
-        }
-        if (dynamic){
-            c = color
-            mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ size: pointSize, color: c }))
-            this.clonemeshes.push({ mesh: mesh, speed: 0.5 + Math.random() })
-        } else {
-            mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ size: pointSize, color: color }))
-        }
-        mesh.scale.x = mesh.scale.y = mesh.scale.z = scale
-        mesh.position.x = x
-        mesh.position.y = y
-        mesh.position.z = z
-        mesh.quaternion.setFromEuler(new THREE.Euler(0, (Math.PI * 2) * Math.random(), 0))
-        this.meshes.push({
-            mesh: mesh,
-            vertices: geometry.vertices,
-            vertices_tmp: vertices_tmp,
-            vl: vl,
-            down: 0,
-            up: 0,
-            direction: 0,
-            speed: 35,
-            delay: Math.floor(10 * Math.random()),
-            started: false,
-            start: Math.floor(100 * Math.random()),
-            dynamic: dynamic
-        })
-        mesh.name = 'prettyperson: ' + Math.random() 
-        return mesh
-    }
+    // createSceneGraphNode(){
+    //     const group = new THREE.Group()
+    //     group.add(this.createMesh(
+    //         this.geometries[Math.floor(this.geometries.length * Math.random())], 
+    //         0.003,
+    //         0,0,0, 
+    //         0.005, 
+    //         this.colors[Math.floor(this.colors.length * Math.random())],
+    //         true
+    //     ))
+    //     return group
+    // }
+    // createMesh(originalGeometry, scale, x, y, z, pointSize, color, dynamic){
+    //     let i, c, mesh, p
+    //     let vertices = originalGeometry
+    //     let vl = vertices.length
+    //     let geometry = new THREE.Geometry()
+    //     let vertices_tmp = []
+    //     for (i = 0; i < vl; i ++){
+    //         p = vertices[i]
+    //         geometry.vertices[i] = p.clone()
+    //         vertices_tmp[i] = [p.x, p.y, p.z, 0, 0]
+    //     }
+    //     if (dynamic){
+    //         c = color
+    //         mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ size: pointSize, color: c }))
+    //         this.clonemeshes.push({ mesh: mesh, speed: 0.5 + Math.random() })
+    //     } else {
+    //         mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ size: pointSize, color: color }))
+    //     }
+    //     mesh.scale.x = mesh.scale.y = mesh.scale.z = scale
+    //     mesh.position.x = x
+    //     mesh.position.y = y
+    //     mesh.position.z = z
+    //     mesh.quaternion.setFromEuler(new THREE.Euler(0, (Math.PI * 2) * Math.random(), 0))
+    //     this.meshes.push({
+    //         mesh: mesh,
+    //         vertices: geometry.vertices,
+    //         vertices_tmp: vertices_tmp,
+    //         vl: vl,
+    //         down: 0,
+    //         up: 0,
+    //         direction: 0,
+    //         speed: 35,
+    //         delay: Math.floor(10 * Math.random()),
+    //         started: false,
+    //         start: Math.floor(100 * Math.random()),
+    //         dynamic: dynamic
+    //     })
+    //     mesh.name = 'prettyperson: ' + Math.random() 
+    //     return mesh
+    // }
 
     // Save screen taps as normalized coordinates for use in this.updateStageGroup
     _onTap(x,y){
@@ -654,7 +813,7 @@ var updateSharedState = function (states) {
     var xrReality = document.querySelector('.webxr-realities');
 
     if (states.indexOf("xrslide") < 0) {
-        sharedState.doRender3D = false;
+        sharedState.xrSlide = false;
         sharedState.doCV = false;
 
         document.body.style.backgroundColor = "black";
@@ -665,7 +824,7 @@ var updateSharedState = function (states) {
             xrReality.style.visibility = "hidden";
         }
     } else {
-        sharedState.doRender3D = true;
+        sharedState.xrSlide = true;
 
         document.body.style.backgroundColor = "transparent";
         if (xrSession) {
