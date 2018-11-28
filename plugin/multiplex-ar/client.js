@@ -17,6 +17,7 @@
 	var multiplex;
 	var socketId;
 	var socket;
+	var playerId = -1;
 
 	// API
 	return {
@@ -25,7 +26,25 @@
 			multiplex = Reveal.getConfig().multiplex;
 			socketId = multiplex.id;
 			socket = io.connect(multiplex.url);
-		
+
+			socket.emit("get-playerId", (id, worldMap) => {
+				playerId = id
+				multiplex.playerId = id
+				console.log("got player id ", id)
+				if (worldMap) {
+					if (typeof multiplex.secret == 'undefined' || multiplex.secret == null || multiplex.secret === '') {
+						console.log("new map!")
+						if (this.setWorldMap) {
+							this.setWorldMap(worldMap)
+						}
+					} else {
+						console.log("I'm the server, ignoring initial worldmap")
+					}
+				} else {
+					console.log("no world map yet")
+				}
+			})
+
 			socket.on(multiplex.id, (cmd, data) => {
 				// ignore data from sockets that aren't ours
 				if (data.socketId !== socketId) { return; }
@@ -34,16 +53,34 @@
 				if (cmd === 'multiplex-statechanged') {
 					Reveal.setState(data.state);
 				} else if (cmd === 'multiplex-newmap') {
-					console.log("new map!")
-					if (this.setWorldMap) {
-						this.setWorldMap(data.map)
+					if (typeof multiplex.secret == 'undefined' || multiplex.secret == null || multiplex.secret === '') {
+						console.log("new map!")
+						if (this.setWorldMap) {
+							this.setWorldMap(data.map)
+						}
+					} else {
+						console.log ("we are master, ignoring map")
+					}
+				} else if (cmd == 'multiplex-anchor-update') {
+					if (this.anchorUpdate) {
+						this.anchorUpdate(data.playerId, data.anchor)
 					}
 				}
 			});
 		},
 
+		updateAnchor: function(anchor) {
+			var messageData = {
+				anchor: anchor,
+				socketId: multiplex.id
+			};
+	
+			socket.emit( 'multiplex-anchor-update', messageData );
+		},
+
 		// TODO: Do these belong in the API?
-		setWorldMap: null
+		setWorldMap: null,
+		anchorUpdate: null
 	};
 
 }));

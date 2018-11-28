@@ -8,6 +8,10 @@ var app       	= express();
 var staticDir 	= express.static;
 var server    	= http.createServer(app);
 
+var worldMap    = null;
+
+var player = 1;
+
 io = io(server);
 
 var opts = {
@@ -16,13 +20,38 @@ var opts = {
 };
 
 io.on( 'connection', function( socket ) {
+
+	socket.on("get-playerId", (fcn) => {
+		var playerId = player;
+		player = player+1;	
+
+		// send a new player id, and the current worldmap if there is one
+		fcn(playerId, worldMap);
+	})
+
 	socket.on('multiplex-statechanged', function(data) {
 		if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
 		if (createHash(data.secret) === data.socketId) {
 			data.secret = null;
-			socket.broadcast.emit(data.socketId, data);
+			socket.broadcast.emit(data.socketId, 'multiplex-statechanged', data);
 		};
 	});
+	socket.on('multiplex-newmap', function(data) {
+		if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
+		if (createHash(data.secret) === data.socketId) {
+			console.log("new map!")
+			data.secret = null;
+			if (data.map) {
+				worldMap = data;
+				socket.broadcast.emit(data.socketId, 'multiplex-newmap', data);
+			}
+		}
+	});
+	socket.on('multiplex-anchor-update', function(data) {
+		// if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
+		socket.broadcast.emit(data.socketId, 'multiplex-anchor-update', data);
+	});
+	
 });
 
 [ 'css', 'js', 'plugin', 'lib' ].forEach(function(dir) {

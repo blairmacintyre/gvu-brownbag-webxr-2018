@@ -1,7 +1,17 @@
 //
 // Plumbob model from "https://sketchfab.com/models/ddcfc38215764692823b2e1e31924071" by Anthony Z. Davis on Sketchfab
 
-
+var sharedState = {
+    setWorldMap: null,
+    doProcessing: true,
+    showBoomBox: false,
+    doCV: false,
+    getMap: 0,
+    prevGetMap: 0,
+    doRender3D: false,
+    showArScene: false,
+    showVrScene: false
+}
 
 class PageApp extends XRExampleBase {
     constructor(domElement){
@@ -13,8 +23,6 @@ class PageApp extends XRExampleBase {
         this.geometries = []
         this.femaleGeometry = null
         this.maleGeometry = null
-
-        this.doProcessing = true;
         
         this.firstMarker = true;
         this.markers = [];
@@ -27,11 +35,20 @@ class PageApp extends XRExampleBase {
         this.tempQuat = new THREE.Quaternion();
         this.tempVec = new THREE.Vector3();
 
+        // for basic map stuff
+        this.myAnchor = null;
+        
+        let secret = Reveal.getConfig().multiplex.secret;
+        this.isMaster = !(typeof secret == 'undefined' || secret == null || secret === '') ;
+
         // has openCV loaded?
+        this.doCV = false;
         this.openCVready = false;
         this.cvStatusTxt = "";
 
         this.triggerResize = true;
+
+        this.anchorBlastCounter = 0;
 
         window.addEventListener('resize', () => {
             this.triggerResize = true;
@@ -49,12 +66,12 @@ class PageApp extends XRExampleBase {
 
         const loader = new THREE.BinaryLoader()
         loader.load('./resources/webxr/examples/models/female02/Female02_bin.js', geometry => {
-            this.femaleGeometry = geometry
+            this.femaleGeometry = geometry.vertices
             this.geometries.push(this.femaleGeometry)
             //this.floorGroup.add(this.createSceneGraphNode())
         })
         loader.load('./resources/webxr/examples/models/male02/Male02_bin.js', geometry => {
-            this.maleGeometry = geometry
+            this.maleGeometry = geometry.vertices
             this.geometries.push(this.maleGeometry)
         })
 
@@ -67,7 +84,6 @@ class PageApp extends XRExampleBase {
 
         effectFocus.uniforms[ "screenWidth" ].value = window.innerWidth;
         effectFocus.uniforms[ "screenHeight" ].value = window.innerHeight;
-
 
         this.composer = new THREE.EffectComposer( this.renderer );
 
@@ -104,7 +120,6 @@ class PageApp extends XRExampleBase {
                         this.triggerResize = false;
                         this.rotation = rotation;
                     }
-
                     videoFrame.release();
 
                     break;
@@ -139,9 +154,12 @@ class PageApp extends XRExampleBase {
 
         this.setVideoWorker(this.worker);
 
+        this.session.addEventListener(XRSession.NEW_WORLD_ANCHOR, this._handleNewWorldAnchor.bind(this))
+        this.session.addEventListener(XRSession.REMOVE_WORLD_ANCHOR, this._handleRemoveWorldAnchor.bind(this))
     }
 
-    doCV (doit) {
+    setDoCV (doit) {
+        this.doCV = doit;
         if (doit) {
             this.session.startVideoFrames();
         } else {
@@ -150,7 +168,9 @@ class PageApp extends XRExampleBase {
     }
 
 	doRender(){
-        if (this.doProcessing) {
+        if (!sharedState.doRender3D) { return; }
+
+        if (sharedState.doProcessing) {
             this.renderer.clear();
             this.composer.render( 0.01 );    
         } else {
@@ -158,29 +178,122 @@ class PageApp extends XRExampleBase {
         }
 	}
 
-    vrScene(){
-        this.scene.background = this.envMap        
+
+    _handleRemoveWorldAnchor(event) {
+        let anchor = event.detail
+        console.log("removed anchor ", anchor.uid)
+
+        if (anchor.uid == "my-first-anchor") {
+            this.myAnchor = null
+            console.log("got rid of my anchor!")
+        } 
     }
 
-    arScene(){ 
-        this.scene.background = null;
+    _handleNewWorldAnchor(event) {
+        let anchor = event.detail
+        console.log("added anchor ", anchor.uid)
+
+        // we will take this appearing as a sign a new map has been loaded, and we will rebuild whatever we need to!
+        if (anchor.uid == "my-first-anchor") {
+            this.setupSharedAnchor(anchor)
+            console.log("get my anchor!")
+        } 
     }
 
-    getMap() {
-        this.session.getWorldMap().then(worldMap => {
-            console.log("got worldMap, size = ", worldMap.worldMap.length)
-
-            RevealMultiARMaster.postMap(worldMap);
-        }).catch(err => {
-            console.error('Could not get world Map', err)
-            self.worldMap = null;
-        });
+    setupSharedAnchor(anchor) {
+        var anchorOffset = new XRAnchorOffset(anchor.uid)
+        this.myAnchor = anchorOffset            
+        this.addAnchoredNode(anchorOffset, this.sharedAnchorNode)
     }
 
     // Called once per frame, before render, to give the app a chance to update this.scene
 	updateScene(frame){
-        // const headPose = frame.getDisplayPose(frame.getCoordinateSystem(XRCoordinateSystem.HEAD_MODEL))
-        // const h = headPose.poseModelMatrix
+        if (this.anchorBlastCounter-- < 0) {
+            this.anchorBlastCounter = 60;
+
+            if (this.myAnchor) {
+                this.tempMat.fromArray(frame.views[0].viewMatrix)
+                this.tempMat2.getInverse(this.sharedAnchorNode.matrix)
+
+                this.tempMat.premultiply(this.tempMat2)
+                RevealMultiARClient.updateAnchor(this.tempMat.elements)
+
+                const anchor = frame.getAnchor(this.myAnchor.anchorUID)
+                if (anchor != null){
+                    console.log("my anchor pose: ", this.myAnchor.getOffsetTransform(anchor.coordinateSystem))
+                }
+                
+            }
+        }
+
+        // update from shared state
+        if (sharedState.doCV != this.doCV) {
+            this.setDoCV(sharedState.doCV)
+        }
+        if (this.boomBox) {
+            this.boomBox.visible = sharedState.showBoomBox;
+        }
+        if (sharedState.showVrScene) {
+            this.scene.background = this.envMap                
+        } else {
+            this.scene.background = null;
+        }
+
+        if (sharedState.setWorldMap) {
+            frame.removeAnchor('my-first-anchor')
+
+            this.session.setWorldMap(sharedState.setWorldMap).then(val => {
+                console.log("set worldMap ok")
+            }).catch(err => {
+                console.error('Could not set world Map', err)
+            })
+            sharedState.setWorldMap = null
+        }
+
+        // only do this in the master!  
+        if (this.isMaster) {
+            switch (sharedState.getMap) {
+                // case 1 happens in both client and master
+                case 1:
+                    if (this.myAnchor) {
+                        // we shall start by removing my anchor
+                        frame.removeAnchor("my-first-anchor")
+                        this.myAnchor = null;
+                    }
+                    break;
+
+                case 2:
+                    if (!this.myAnchor) {
+                        // just to be sure
+                        frame.removeAnchor("my-first-anchor")
+                        var anchor = frame.getAnchor('my-first-anchor')
+                        if (!anchor) {
+                            console.log('could not find the base anchor')
+                            const headCoordinateSystem = frame.getCoordinateSystem(XRCoordinateSystem.EYE_LEVEL)
+                            const anchorUID = frame.addAnchor(headCoordinateSystem, [0,-1,0], [0,0,0,1], "my-first-anchor")
+                            anchor = frame.getAnchor(anchorUID)
+                        }
+                        this.setupSharedAnchor(anchor)
+                    }
+                    break;
+
+                case 3:
+                    // reset it, only want to act on transition
+                    sharedState.getMap = -1;
+
+                    this.session.getWorldMap().then(worldMap => {
+                        console.log("got worldMap, size = ", worldMap.worldMap.length)
+
+                        for (var i=0; i < worldMap.anchors.length; i++) {
+                            console.log("anchor: ", worldMap.anchors[i].name, "  pose: ", worldMap.anchors[i].transform )
+                        }
+                        RevealMultiARMaster.postMap(worldMap);
+                    }).catch(err => {
+                        console.error('Could not get world Map', err)
+                    });
+                    break;
+            }
+        }
 
         if (this.markers.length > 0) {
             var m = this.markers[0].pose;
@@ -382,6 +495,24 @@ class PageApp extends XRExampleBase {
 
         this.scene.background = null;
         
+        // something for the shared anchor
+        this.sharedAnchorNode = new THREE.Group()
+        let box2 = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(0.06, 0.06, 0.06),
+            new THREE.MeshPhongMaterial({ color: '#FF00DD' })
+        )
+        box2.position.set(0, 0, 0)
+        this.sharedAnchorNode.add(box2)
+
+        // something else for the shared anchor
+        this.dynamicSharedAnchorNode = new THREE.Group()
+        var geometry = new THREE.SphereGeometry( 0.05, 10, 7 );
+        var material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
+        this.dynamicSharedAnchorNode.add( new THREE.Mesh( geometry, material ) );
+
+        this.sharedAnchorNode.add(this.dynamicSharedAnchorNode)
+        this.dynamicSharedAnchorNode.matrixAutoUpdate = false;
+
         // Create the environment map
         const path = './resources/webxr/examples/textures/Park2/'
         const format = '.jpg'
@@ -414,8 +545,17 @@ class PageApp extends XRExampleBase {
         loadGLTF('./resources/models/DuckyMesh.glb').then(gltf => {
             this.ducky = gltf.scene;
         }).catch((...params) =>{
-            console.error('could not load gltf', ...params)
+            console.error('could not load ducky gltf', ...params)
         })
+
+        // loadGLTF('./resources/models/the_sims_-_plumbob/scene.gltf').then(gltf => {
+        //     this.plumbbob = gltf.scene;
+        //     gltf.scene.scale.set(0.001,0.001, 0.001)
+
+        //     this.dynamicSharedAnchorNode.add(this.plumbbob)
+        // }).catch((...params) =>{
+        //     console.error('could not load plumbob gltf', ...params)
+        // })
     }
 
     createSceneGraphNode(){
@@ -433,7 +573,7 @@ class PageApp extends XRExampleBase {
 
     createMesh(originalGeometry, scale, x, y, z, pointSize, color, dynamic){
         let i, c, mesh, p
-        let vertices = originalGeometry.vertices
+        let vertices = originalGeometry
         let vl = vertices.length
         let geometry = new THREE.Geometry()
         let vertices_tmp = []
@@ -497,40 +637,72 @@ window.addEventListener('DOMContentLoaded', () => {
 
 Reveal.addEventListener('ready', () => {
     RevealMultiARClient.setWorldMap = function (worldMap) {
-        window.pageApp.session.setWorldMap(worldMap).then(val => {
-            console.log("set worldMap ok")
-        }).catch(err => {
-            console.error('Could not set world Map', err)
-        })
+        sharedState.setWorldMap = worldMap;
     }
+
+    RevealMultiARClient.anchorUpdate = 	function (playerId, anchor) {
+        console.log("received Anchor Update: ", playerId, ", ", anchor)
+        window.pageApp.dynamicSharedAnchorNode.matrix.fromArray(anchor); 
+        window.pageApp.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
+	}
 })
 
 ///
 /// presentation
+var updateSharedState = function (states) {
+    var xrSession = document.querySelector('.webxr-sessions');
+    var xrReality = document.querySelector('.webxr-realities');
+
+    if (states.indexOf("xrslide") < 0) {
+        sharedState.doRender3D = false;
+        sharedState.doCV = false;
+
+        document.body.style.backgroundColor = "black";
+        if (xrSession) {
+            xrSession.style.visibility = "hidden";
+        }
+        if (xrReality) {
+            xrReality.style.visibility = "hidden";
+        }
+    } else {
+        sharedState.doRender3D = true;
+
+        document.body.style.backgroundColor = "transparent";
+        if (xrSession) {
+            xrSession.style.visibility = "visible";
+        }
+        if (xrReality) {
+            xrReality.style.visibility = "visible";
+        }
+
+        if (states.indexOf("xrmap1") >= 0) {
+            sharedState.getMap = 1;
+        } else  if (states.indexOf("xrmap2") >= 0) {
+            sharedState.getMap = 2;
+        } else if (states.indexOf("xrmap3") >= 0) {
+            sharedState.getMap = 3;
+        } else {
+            sharedState.getMap = 0;
+        }
+
+        sharedState.doCV = states.indexOf("computerVision") >= 0
+        sharedState.doProcessing = (states.indexOf("3deffects") >= 0)
+        sharedState.showBoomBox = (states.indexOf("boombox") >= 0)     
+
+        sharedState.showArScene = states.indexOf("arslide") >= 0
+        sharedState.showVrScene = states.indexOf("vrslide") >= 0
+    }
+}
 
 // Reveal is loaded and ready
 Reveal.addEventListener( 'ready', function( event ) {
-	// event.currentSlide, event.indexh, event.indexv
+    // event.currentSlide, event.indexh, event.indexv
     var slideState = event.currentSlide.getAttribute( 'data-state' );
     var states = [];
     if( slideState ) {
         states = slideState.split( ' ' );
     }
-
-    if (states.indexOf("xrslide") >= 0) {
-        document.body.style.backgroundColor = "transparent";
-    } else {
-        document.body.style.backgroundColor = "black";        
-    }
-
-    var xrSession = document.querySelector('.webxr-sessions');
-    if (xrSession) {
-        xrSession.style.visibility = "hidden";        
-    }
-    var xrReality = document.querySelector('.webxr-realities');
-    if (xrReality) {
-        xrReality.style.visibility = "hidden";        
-    }
+    updateSharedState(states)
 } );
 
 
@@ -551,52 +723,19 @@ Reveal.addEventListener( 'slidechanged', function( event ) {
         }
     }
 
-    if (states.indexOf("xrmap") < 0 && prevStates.indexOf("xrmap") >= 0) {
-        // we have just left the xrMap slide
-        window.pageApp.getMap();        
-    }
+    updateSharedState(states)
 
-    var xrSession = document.querySelector('.webxr-sessions');
-    var xrReality = document.querySelector('.webxr-realities');
-
-    if (states.indexOf("xrslide") >= 0) {
-        document.body.style.backgroundColor = "transparent";
-        if (xrSession) {
-            xrSession.style.visibility = "visible";
-        }
-        if (xrReality) {
-            xrReality.style.visibility = "visible";
-        }
-
-        if (window.pageApp) {
-            window.pageApp.doCV(states.indexOf("computerVision") >= 0)
-            window.pageApp.doProcessing = (states.indexOf("3deffects") >= 0)
-            if (window.pageApp.boomBox) {
-                window.pageApp.boomBox.visible = (states.indexOf("boombox") >= 0)
-            }        
-            if (states.indexOf("arslide") >= 0) {
-                window.pageApp.arScene();
-                // delete window.pageApp
-                // window.pageApp = new PageApp(document.getElementById('target'))
-                // window.touchTapHandler = window.pageApp._onTap.bind(window.pageApp)
-            }
-            else if (states.indexOf("vrslide") >= 0) {
-                window.pageApp.vrScene();
-                // delete window.pageApp
-                // window.pageApp = new ARSimplestExample(document.getElementById('target'))
-                // window.touchTapHandler = window.pageApp._onTap.bind(window.pageApp)
-            }
-        }
+    if (prevStates.indexOf("xrmap1") >= 0) {
+        sharedState.prevGetMap = 1;
+    } else  if (prevStates.indexOf("xrmap2") >= 0) {
+        sharedState.prevGetMap = 2;
+    } else if (prevStates.indexOf("xrmap3") >= 0) {
+        sharedState.prevGetMap = 3;
     } else {
-        document.body.style.backgroundColor = "black";
-        if (xrSession) {
-            xrSession.style.visibility = "hidden";
-        }
-        if (xrReality) {
-            xrReality.style.visibility = "hidden";
-        }
-    }  
-} );
+        sharedState.prevGetMap = 0;
+    }
+            
+});
 
 // If you set ``data-state="somestate"`` on a slide ``<section>``, "somestate" will 
 // be applied as a class on the document element when that slide is opened.

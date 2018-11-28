@@ -3036,7 +3036,7 @@ var XRSession = function (_EventHandlerBase) {
 				anchor.timestamp = frame.timestamp;
 				this._frameAnchors.unshift(anchor);
 
-				if (this._frameAnchors.length > 10) {
+				if (this._frameAnchors.length > 5) {
 					var oldAnchor = this._frameAnchors.pop();
 					this._display._reality._removeAnchor(oldAnchor.uid);
 				}
@@ -3222,7 +3222,7 @@ var XRSession = function (_EventHandlerBase) {
 					console.error('NEW_WORLD_ANCHOR event error', e);
 				}
 			} else {
-				console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid);
+				// console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid);
 			}
 		}
 	}, {

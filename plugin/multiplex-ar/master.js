@@ -16,12 +16,14 @@
 }( this, function() {
 	var multiplex;
 	var socket;
+	var socketId;
 
 	function post() {
 		var messageData = {
 			state: Reveal.getState(),
 			secret: multiplex.secret,
-			socketId: multiplex.id
+			socketId: multiplex.id,
+			playerId: multiplex.playerId
 		};
 
 		socket.emit( 'multiplex-statechanged', messageData );
@@ -31,20 +33,44 @@
 		var messageData = {
 			map: worldMap,
 			secret: multiplex.secret,
-			socketId: multiplex.id
+			socketId: multiplex.id,
+			playerId: multiplex.playerId
 		};
 
 		socket.emit( 'multiplex-newmap', messageData );
 		console.log("new map, baby!")
 	}
 
+	function postAnchor (anchor) {
+		var messageData = {
+			anchor: anchor,
+			secret: multiplex.secret,
+			socketId: multiplex.id,
+			playerId: multiplex.playerId
+		};
+
+		socket.emit( 'multiplex-anchor-update', messageData );
+	}
 
 	// API
 	return {
 
 		initialize: function() {
 			multiplex = Reveal.getConfig().multiplex;
+			socketId = multiplex.id;
 			socket = io.connect( multiplex.url );
+
+			// socket.on(multiplex.id, (cmd, data) => {
+			// 	// ignore data from sockets that aren't ours
+			// 	if (data.socketId !== multiplex.id) { return; }
+			// 	if( window.location.host === 'localhost:1947' ) return;
+		
+			// 	 if (cmd == 'multiplex-anchor-update') {
+			// 		if (this.anchorUpdate) {
+			// 			this.anchorUpdate(data.anchor)
+			// 		}
+			// 	}
+			// });
 
 			// Monitor events that trigger a change in state
 			Reveal.addEventListener( 'slidechanged', post );
@@ -57,7 +83,8 @@
 		},
 
 		// TODO: Do these belong in the API?
-		postMap: postMap
+		postMap: postMap,
+		postAnchor: postAnchor
 	};
 
 }));
