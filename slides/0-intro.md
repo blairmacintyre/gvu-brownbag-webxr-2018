@@ -1,7 +1,7 @@
 <!-- .slide: data-background="resources/textures/background-radial.jpeg"  -->
 
 <div class="talk-title">
-	<h1>WebXR, AR and the Immersive Web: Past, Present and Future</h1>
+	<h1>WebXR, AR and the Immersive Web:<br>Past, Present and Future</h1>
     <p class="talk-info">
 		<b><a href="http://blairmacintyre.me">Blair MacIntyre</a></b>
 		<br>
