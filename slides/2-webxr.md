@@ -120,6 +120,26 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 <br>
 
 ------
+<!-- .slide: data-background="resources/textures/caniuse-xr.png" data-background-size="contain" data-background-repeat="no-repeat" -->
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+WebXR (initially renamed WebVR, work in progress)
+</blockquote>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+------
 
 <!-- .slide: data-background="media/img/aframe.jpg"  data-state="xrClearPlaced" -->
 <div style="background: rgba(32, 32, 32, 0.5);">

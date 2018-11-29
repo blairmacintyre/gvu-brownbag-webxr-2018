@@ -61,7 +61,7 @@ Can't manipulate <span class="green">the user and their space</span> like in VR
 
 ------
 
-<!-- .slide: data-background="resources/textures/mozilla-com.png"  -->
+<!-- .slide: data-background="resources/textures/mozilla-com.png"  data-background-size="contain"  -->
 
 ------
 
@@ -73,15 +73,15 @@ Can't manipulate <span class="green">the user and their space</span> like in VR
 
 ------
 
-<!-- .slide: data-background="resources/textures/argon1-appstore.png"  -->
+<!-- .slide: data-background="resources/textures/argon1-appstore.png" data-background-size="contain"   -->
 
 ------
 
-<!-- .slide: data-background="resources/textures/argon2-appstore.png"  -->
+<!-- .slide: data-background="resources/textures/argon2-appstore.png" data-background-size="contain"  -->
 ------
 
-<!-- .slide: data-background="resources/textures/argon3-appstore.png"  -->
+<!-- .slide: data-background="resources/textures/argon3-appstore.png" data-background-size="contain"  -->
 ------
 
-<!-- .slide: data-background="resources/textures/argon4-appstore.png"  -->
+<!-- .slide: data-background="resources/textures/argon4-appstore.png" data-background-size="contain"  -->
 
