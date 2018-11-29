@@ -14,16 +14,7 @@
 
 <!-- NOTES -->
 ------
-<!-- .slide: data-background="resources/textures/terminator.png" -->
-<blockquote style="background: rgba(32, 32, 32, 0.5);">
-<h2>The Future of AR and the Web Are Intertwined</h2>
-  <br>
-  <br>
-  Always on, Simultaneous content from many sources, Ephemeral, Safe
-  <br>  
-  <h2>WebXR Device API:<br> VR and simple AR now, <bR>a lot more still needed</h2>
-</blockquote>
-------
+
 
 <!-- .slide: data-background="resources/textures/vhfrsword-of-damocles.jpg"  -->
 <blockquote style="background: rgba(32, 32, 32, 0.5);">
@@ -43,10 +34,11 @@
 Can only augment <span class="green">what we know</span>
 <br><br>
 <h2>AR Experiences are Constrained BY the Real world</h2>
-Can't manipulate <span class="green">the user and their space</span> like in VR
 </blockquote>
 
+
 ------
+
 <!-- .slide: data-background="resources/textures/industrial-medical.png"  -->
 
 ------
@@ -68,8 +60,53 @@ Can't manipulate <span class="green">the user and their space</span> like in VR
 <!-- .slide: data-background="resources/textures/mozilla-org2.png"  -->
 
 ------
+<!-- .slide: data-background="resources/textures/terminator.png" -->
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+<h3>The Future of AR and the Web Are Intertwined</h3>
+  <br>
+  <br>
+<br>
+  <h3>"Always on,<br>Simultaneous content from many sources,<br>Ephemeral,<br>Safe, ... "</h3>
+  <br>  
+</blockquote>
 
-<!-- .slide: data-background="resources/textures/argonjs-github.png"  -->
+------
+
+<!-- .slide: data-background="resources/textures/background-radial.jpeg"  -->
+## Emerging Technology
+![ET Functions](resources/textures/et-functions.png)
+https://research.mozilla.org
+------
+
+<!-- .slide: data-background="resources/textures/background-radial.jpeg"  -->
+
+![ET Programs](resources/textures/et-programs.png)
+
+------
+
+<!-- .slide: data-background="resources/textures/et-project-things.png"  -->
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+https://iot.mozilla.org/
+</blockquote>
+
+
+------
+
+<!-- .slide: data-background="resources/textures/argonjs-github.png"  data-background-size="contain"  -->
 
 ------
 

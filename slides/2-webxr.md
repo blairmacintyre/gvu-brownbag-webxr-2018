@@ -122,7 +122,7 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 ------
 <!-- .slide: data-background="resources/textures/caniuse-xr.png" data-background-size="contain" data-background-repeat="no-repeat" -->
 <blockquote style="background: rgba(32, 32, 32, 0.5);">
-WebXR (initially renamed WebVR, work in progress)
+(WebVR renamed to WebXR on caniuse.com, but still WebVR)
 </blockquote>
 
 <br>
@@ -376,7 +376,6 @@ WebXR (initially renamed WebVR, work in progress)
 ------
 <!-- .slide: data-state="xrslide arslide 3deffects xrReloadMap xrClearPlaced xrCollab" style="text-align: left;" -->
 
-<h2>Co-located Collaborative AR Has Tighter Constraints</h2>
 <br>
 <br>
 <br>
@@ -387,7 +386,12 @@ WebXR (initially renamed WebVR, work in progress)
 <br>
 <br>
 <br>
-
+<br>
+<br>
+<br>
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+Co-located Collaborative AR Has Tighter Constraints
+</blockquote>
 ------
 
 <!-- .slide: data-background="resources/textures/webxr-landscape-7.png" data-background-size="contain" data-background-color="white"  data-background-repeat="no-repeat" -->
@@ -409,16 +413,6 @@ WebXR (initially renamed WebVR, work in progress)
 https://trevor.smith.name/publish/exformation/10080/
 </blockquote>
 
-
-------
-
-<!-- .slide: data-background="resources/textures/background-radial.jpeg" -->
-
-<img src="resources/textures/trevor-tweets-xr-probs-1.png" width="600">
-<img src="resources/textures/trevor-tweets-xr-probs-2.png" width="600">
-
-<em><a href="https://twitter.com/TrevorFSmith/status/1000805428773634049">https://twitter.com/TrevorFSmith/status/1000805428773634049</a></em>
-
 ------
 
 <!-- .slide: data-background="resources/textures/mozilla-store-xr.gif" -->
@@ -435,6 +429,16 @@ https://trevor.smith.name/publish/exformation/10080/
 
 
 ------
+<!-- .slide: data-background="resources/textures/background-radial.jpeg" -->
+### Beyond WebXR Device API, more Experimentation needed across the WebXR Ecosystem
+
+- 2D DOM content in 3D
+- Mixed 2D/3D apps
+- Multiple web apps at once
+- 3D DOM elements
+- ...
+
+------
 <!-- .slide: data-background-video="resources/videos/servo-page-3d.mp4" -->
 <br>
 <br>
@@ -446,8 +450,9 @@ https://trevor.smith.name/publish/exformation/10080/
 <br>
 <br>
 <br>
+<br>
+<br>
+<br>
 <blockquote style="background: rgba(32, 32, 32, 0.5);">
-<h3>More Experimentation needed for other XR capabilities</h3>
-<em>2D DOM content in 3D, mixed 2D/3D apps</em>
-<p><em>multiple web apps at once, new DOM elements, ...</em></p>
+<em>2D DOM content in 3D</em>
 </blockquote>

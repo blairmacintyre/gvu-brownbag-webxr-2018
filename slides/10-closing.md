@@ -7,6 +7,7 @@
 <p>No need for apps and closed platforms; embrace the Web!</p>
 <p>Leverage web for networking, multi-user services, content</p>
 <p>Platform independent, responsive XR apps</p>
+<p>Mixture of 2D and 3D content from multiple sources</p>
 <br>
 <p>Open Source: hack it for research, run your own!</p>
 </blockquote>
