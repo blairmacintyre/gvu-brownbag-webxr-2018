@@ -1,7 +1,7 @@
 <!-- .slide: data-background="resources/textures/background-radial.jpeg"  -->
 
 <div class="talk-title">
-	<h1>A Roadmap for Future AR Technology in WebXR</h1>
+	<h1>WebXR and the Immersive Web: Past, Present and Future</h1>
     <p class="talk-info">
 		<b><a href="http://blairmacintyre.me">Blair MacIntyre</a></b>
 		<br>
