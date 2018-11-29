@@ -1,7 +1,7 @@
 {
   "name": "gvu-brownbag-webxr-2018",
   "version": "1.0.0",
-  "description": "Future of WebXR: AWE 2018",
+  "description": "WebXR, AR and the Immersive Web: Past, Present and Future",
   "homepage": "https://github.blairmacintyre.me/gvu-brownbag-webxr-2018",
   "scripts": {
     "starthttp": "grunt serve",
