@@ -72,6 +72,10 @@ class PageApp extends XRExampleBase {
         this.tempQuat = new THREE.Quaternion();
         this.tempVec = new THREE.Vector3();
 
+        this.tempScale = new THREE.Vector3();
+        this.tempPos = new THREE.Vector3();
+        this.tempQuaternion = new THREE.Quaternion();
+
         // for basic map stuff
         this.myAnchor = null;
 
@@ -128,12 +132,13 @@ class PageApp extends XRExampleBase {
         // this.composer.addPass( effectFocus );
         // effectFocus.renderToScreen = true;
 
-
+        
         // Add a box at the scene origin
         let box = new THREE.Mesh(
             new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
             new THREE.MeshPhongMaterial({ color: '#DDFFDD' })
         )
+        this.floorBox = box;
         box.position.set(0, 0, 0)
         this.floorGroup.add(box)
 
@@ -474,6 +479,18 @@ class PageApp extends XRExampleBase {
         if (this.boomBox) {
             this.boomBox.visible = sharedState.showBoomBox;
         }
+
+        if (this.floorBox) {
+            this.floorBox.visible = sharedState.showArScene
+        }
+        if (this.sharedAnchorNode) {
+            this.sharedAnchorNode.visible  = sharedState.showArScene
+        }
+
+        if (this.dynamicSharedAnchorNode) {
+            this.dynamicSharedAnchorNode.visible  = sharedState.showArScene
+        }
+
         if (sharedState.showVrScene) {
             this.scene.background = this.envMap                
         } else {
@@ -759,8 +776,18 @@ class PageApp extends XRExampleBase {
 					console.log('miss')
 					return
 				}
-				console.log('hit', anchorOffset)
-				this.addAnchoredNode(anchorOffset, this.createSceneGraphNode())
+                console.log('hit', anchorOffset)
+                
+                const worldCoordinates = frame.getCoordinateSystem(XRCoordinateSystem.TRACKER)
+                var anchor = frame.getAnchor(anchorOffset.anchorUID)					
+                this.tempMat.fromArray(anchorOffset.getOffsetTransform(anchor.coordinateSystem))
+                this.tempMat.decompose(this.tempPos,this.tempQuaternion, this.tempScale); 
+
+                const anchorUID = frame.addAnchor(worldCoordinates, [this.tempPos.x, this.tempPos.y, this.tempPos.z], [this.tempQuaternion.x, this.tempQuaternion.y, this.tempQuaternion.z, this.tempQuaternion.w])
+                this.addAnchoredNode(new XRAnchorOffset(anchorUID), this.createSceneGraphNode())
+                
+                
+				//this.addAnchoredNode(anchorOffset, this.createSceneGraphNode())
 			}).catch(err => {
 				console.error('Error in hit test', err)
 			})

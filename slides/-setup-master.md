@@ -1,5 +1,5 @@
 ------
-<!-- .slide: data-state="xrslide xrmap1" style="text-align: left;" -->
+<!-- .slide: data-state="xrslide  arslide xrmap1" style="text-align: left;" -->
 
 <h2>Are you sitting comfortably?  Let's make sure.</h2>
 <br>
@@ -15,7 +15,7 @@ Please look around to map the space, wait for things to load and become smooth. 
 <br>
 
 ------
-<!-- .slide: data-state="xrslide xrmap2" style="text-align: left;" -->
+<!-- .slide: data-state="xrslide arslide  xrmap2" style="text-align: left;" -->
 
 <h2>Are you still ok? still sitting comfortably?  Let's make sure.</h2>
 <br>
@@ -31,7 +31,7 @@ Look around, make sure "World Mapping Ready" is displayed, and that tracking is 
 <br>
 
 ------
-<!-- .slide: data-state="xrslide xrmap3" style="text-align: left;" -->
+<!-- .slide: data-state="xrslide arslide xrmap3" style="text-align: left;" -->
 
 <h2>Almost done? still sitting comfortably?  Let's make sure.</h2>
 <br>
