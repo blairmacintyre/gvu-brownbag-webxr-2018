@@ -17,6 +17,7 @@ var sharedState = {
     setWorldMap: null,
     savedWorldMap: null,
     clearPlaced: false,
+    arCollab: false,
     doProcessing: true,
     showBoomBox: false,
     doCV: false,
@@ -178,7 +179,7 @@ class PageApp extends XRExampleBase {
         loadGLTF('./resources/webxr/examples/models/BoomBox/glTF-pbrSpecularGlossiness/BoomBox.gltf').then(gltf => {
             this.decrementSpin();
             gltf.scene.scale.set(15, 15, 15)
-            gltf.scene.position.set(0, 1, -0.6)
+            gltf.scene.position.set(0, 1, -1)
             gltf.scene.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
 
             gltf.scene.traverse(node => {
@@ -404,7 +405,7 @@ class PageApp extends XRExampleBase {
     // Called once per frame, before render, to give the app a chance to update this.scene
 	updateScene(frame){
         if (this.anchorBlastCounter-- < 0) {
-            this.anchorBlastCounter = 60;
+            this.anchorBlastCounter = sharedState.arCollab ? 4 : 60;
 
             if (this.myAnchor) {
                 this.tempMat.fromArray(frame.views[0].viewMatrix)
@@ -887,6 +888,10 @@ var updateSharedState = function (states) {
         if (sharedState.savedWorldMap) {
             sharedState.setWorldMap = sharedState.savedWorldMap 
         }
+    }
+
+    if (states.indexOf("xrCollab") >= 0) {
+        sharedState.arCollab = true
     }
 
     if (states.indexOf("xrClearPlaced") >= 0) {

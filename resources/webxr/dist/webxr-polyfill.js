@@ -3222,7 +3222,7 @@ var XRSession = function (_EventHandlerBase) {
 					console.error('NEW_WORLD_ANCHOR event error', e);
 				}
 			} else {
-				// console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid);
+				// console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid)
 			}
 		}
 	}, {
@@ -11039,6 +11039,8 @@ var FlatDisplay = function (_XRDisplay) {
 			// #define WEB_AR_TRACKING_STATE_LIMITED_FEATURES     @"ar_tracking_limited_insufficient_features"
 			// #define WEB_AR_TRACKING_STATE_NOT_AVAILABLE        @"ar_tracking_not_available"
 			// #define WEB_AR_TRACKING_STATE_RELOCALIZING 	 	  @"ar_tracking_relocalizing"
+
+			// the string gets sent as a single member array, pull the member out
 			try {
 				this.dispatchEvent(new CustomEvent(_XRDisplay3.default.TRACKING_CHANGED, {
 					source: this,

@@ -50,7 +50,8 @@ An open platform for VR and AR with the advantages of **the Web**
 <h1>"Webby" Approach to AR/VR/MR</h1>
 
 <ul>
-<li> Platform independence: you use the device of your choice,<br>taking advantage of platform capabilities</li>
+<li> Platform independence: you use the device of your choice,<br>
+taking advantage of platform capabilities</li>
 <li> New approaches to privacy</li>
 <li> Ad-hoc social experiences</li>
 </ul>
@@ -120,7 +121,7 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 
 ------
 
-<!-- .slide: data-background="media/img/aframe.jpg"  data-state="xrReloadMap xrClearPlaced" -->
+<!-- .slide: data-background="media/img/aframe.jpg"  data-state="xrClearPlaced" -->
 <div style="background: rgba(32, 32, 32, 0.5);">
     <h2>Easy to Integrate AR/VR/MR
      with Web Tools</h1>
@@ -289,9 +290,6 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 
 <!-- .slide: data-background="resources/textures/hubs-Design-Overview.png" -->
 
-------
-<!-- .slide: data-background-video="resources/videos/FirefoxRealityPreview.mp4" data-background-size="contain" data-background-repeat="no-repeat" -->
-
 <br>
 <br>
 <br>
@@ -308,14 +306,35 @@ WebVR support available on all platforms from at least one major browser (Vive, 
     https://github.com/MozillaReality/FirefoxReality
 </blockquote>
 
+------
+<!-- .slide: data-background-video="resources/videos/FirefoxReality-1.1-Intro.mp4" data-background-size="contain" data-background-repeat="no-repeat" -->
 
+------
+
+<!-- .slide: data-background-video="resources/videos/servo-ml1.m4v" data-background-size="contain" data-background-repeat="no-repeat" -->
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+    Servo: The Parallel Browser Engine, https://servo.org<br>
+    (Nightly Demo Building on ML1)
+</blockquote>
 ------
 
 <!-- .slide: data-background="resources/textures/webxr-landscape-6.png" data-background-size="contain" data-background-color="white"  data-background-repeat="no-repeat" -->
 
 ------
 
-<!-- .slide: data-background="resources/textures/Hubs-3-3.gif" -->
+<!-- .slide: data-background-video="resources/videos/mozilla_hubs_-_oculus_browser_-_in-vr_720p.m4v" -->
 
 <br>
 <br>
@@ -328,11 +347,26 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 <br>
 <br>
 <blockquote style="background: rgba(32, 32, 32, 0.5);">
-    hubs.mozilla.com, a pure web-based social XR experiment
+    hubs.mozilla.com, a pure web-based social XR environment
 </blockquote>
 
 ------
 <!-- .slide: data-background-video="resources/videos/ar-vr-social-gods-eye.mp4" data-background-size="contain" data-background-repeat="no-repeat" -->
+
+------
+<!-- .slide: data-state="xrslide arslide 3deffects xrReloadMap xrClearPlaced xrCollab" style="text-align: left;" -->
+
+<h2>Co-located Collaborative AR Has Tighter Constraints</h2>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 
 ------
 

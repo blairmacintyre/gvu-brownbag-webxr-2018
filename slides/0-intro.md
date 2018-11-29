@@ -1,7 +1,7 @@
 <!-- .slide: data-background="resources/textures/background-radial.jpeg"  -->
 
 <div class="talk-title">
-	<h1>WebXR and the Immersive Web: Past, Present and Future</h1>
+	<h1>WebXR, AR and the Immersive Web: Past, Present and Future</h1>
     <p class="talk-info">
 		<b><a href="http://blairmacintyre.me">Blair MacIntyre</a></b>
 		<br>
@@ -16,9 +16,11 @@
 ------
 <!-- .slide: data-background="resources/textures/terminator.png" -->
 <blockquote style="background: rgba(32, 32, 32, 0.5);">
-<h2>AR is the Future of WebXR</h2>
-  <p>(I've been doing AR for a while, I'm biased)</p>
+<h2>The Future of AR and the Web Are Intertwined</h2>
   <br>
+  <br>
+  Always on, Simultaneous content from many sources, Ephemeral, Safe
+  <br>  
   <h2>WebXR Device API:<br> VR and simple AR now, <bR>a lot more still needed</h2>
 </blockquote>
 ------
@@ -34,6 +36,17 @@
 
 <h3>Ivan Sutherland, "The Ultimate Display", mid-1960's</h3>
 ------
+<!-- .slide: data-background="resources/textures/ften-large.jpg" -->
+<blockquote style="background: rgba(32, 32, 32, 0.5);">
+<h2>AR experiences are Constrained by Knowledge of the World Relative to Viewer</h2>
+
+Can only augment <span class="green">what we know</span>
+<br><br>
+<h2>AR Experiences are Constrained BY the Real world</h2>
+Can't manipulate <span class="green">the user and their space</span> like in VR
+</blockquote>
+
+------
 <!-- .slide: data-background="resources/textures/industrial-medical.png"  -->
 
 ------
@@ -43,12 +56,32 @@
 <!-- .slide: data-background="resources/textures/collaborative-ar.png"  -->
 
 ------
-<!-- .slide: data-background="resources/textures/terminator.png" -->
-<blockquote style="background: rgba(32, 32, 32, 0.5);">
-<h2>AR experiences are Constrained by Knowledge of the World Relative to Viewer</h2>
 
-Can only augment <span class="green">what we know</span>
-<br><br>
-<h2>AR Experiences are Constrained BY the Real world</h2>
-Can't manipulate <span class="green">the user and their space</span> like in VR
-</blockquote>
+<!-- .slide: data-background="resources/textures/mozillian-blair.png"  -->
+
+------
+
+<!-- .slide: data-background="resources/textures/mozilla-com.png"  -->
+
+------
+
+<!-- .slide: data-background="resources/textures/mozilla-org2.png"  -->
+
+------
+
+<!-- .slide: data-background="resources/textures/argonjs-github.png"  -->
+
+------
+
+<!-- .slide: data-background="resources/textures/argon1-appstore.png"  -->
+
+------
+
+<!-- .slide: data-background="resources/textures/argon2-appstore.png"  -->
+------
+
+<!-- .slide: data-background="resources/textures/argon3-appstore.png"  -->
+------
+
+<!-- .slide: data-background="resources/textures/argon4-appstore.png"  -->
+

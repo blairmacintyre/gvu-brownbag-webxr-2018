@@ -262,7 +262,7 @@ export default class XRSession extends EventHandlerBase {
 	            console.error('NEW_WORLD_ANCHOR event error', e)
 	        }
 	    } else {
-	       // console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid)
+	        // console.log('not passing NEW_WORLD_ANCHOR event to app for ', xrAnchor.uid)
 	    }
     }
 
