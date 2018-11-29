@@ -120,7 +120,7 @@ WebVR support available on all platforms from at least one major browser (Vive, 
 
 ------
 
-<!-- .slide: data-background="media/img/aframe.jpg" -->
+<!-- .slide: data-background="media/img/aframe.jpg"  data-state="xrReloadMap xrClearPlaced" -->
 <div style="background: rgba(32, 32, 32, 0.5);">
     <h2>Easy to Integrate AR/VR/MR
      with Web Tools</h1>

@@ -35,7 +35,10 @@
 					if (typeof multiplex.secret == 'undefined' || multiplex.secret == null || multiplex.secret === '') {
 						console.log("new map!")
 						if (this.setWorldMap) {
+							console.log("initialize time, we got a map")
 							this.setWorldMap(worldMap)
+						} else {
+							console.log("haven't set up callback yet ... oops")
 						}
 					} else {
 						console.log("I'm the server, ignoring initial worldmap")
@@ -72,7 +75,9 @@
 		updateAnchor: function(anchor) {
 			var messageData = {
 				anchor: anchor,
-				socketId: multiplex.id
+				socketId: multiplex.id,
+				secret: multiplex.secret,
+				playerId: multiplex.playerId
 			};
 	
 			socket.emit( 'multiplex-anchor-update', messageData );

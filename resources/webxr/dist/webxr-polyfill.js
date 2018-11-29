@@ -3029,7 +3029,7 @@ var XRSession = function (_EventHandlerBase) {
 		key: '_updateCameraAnchor',
 		value: function _updateCameraAnchor(frame) {
 			// new anchor each minute
-			if (this._frameAnchors.length == 0 || this._frameAnchors[0].timestamp + 60000 < frame.timestamp) {
+			if (this._frameAnchors.length == 0 || this._frameAnchors[0].timestamp + 1000 < frame.timestamp) {
 				var headCoordinateSystem = frame.getCoordinateSystem(XRCoordinateSystem.EYE_LEVEL);
 				var anchorUID = frame.addAnchor(headCoordinateSystem, [0, -1, 0], [0, 0, 0, 1], 'cameraAnchor-' + new Date().getTime() + '-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
 				var anchor = frame.getAnchor(anchorUID);

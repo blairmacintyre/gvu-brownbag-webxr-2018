@@ -15,6 +15,8 @@
         
 var sharedState = {
     setWorldMap: null,
+    savedWorldMap: null,
+    clearPlaced: false,
     doProcessing: true,
     showBoomBox: false,
     doCV: false,
@@ -24,6 +26,8 @@ var sharedState = {
     showArScene: false,
     showVrScene: false
 }
+
+window.sharedState = sharedState;
 
 class PageApp extends XRExampleBase {
     constructor(domElement){
@@ -35,8 +39,19 @@ class PageApp extends XRExampleBase {
         this.textBox.visibility = false;
 
         domElement.parentNode.insertBefore(this.textBox, domElement)
-        this.trackingState = "unknown";
 
+        let secret = Reveal.getConfig().multiplex.secret;
+        this.isMaster = !(typeof secret == 'undefined' || secret == null || secret === '') ;
+
+        window.addEventListener('resize', () => {
+            this.triggerResize = true;
+        })
+    }
+
+    // Called during construction to allow the app to populate this.scene
+    initializeScene() {
+
+        this.trackingState = "unknown";
         this.clock = new THREE.Clock()
 		this._tapEventData = null // Will be filled in on touch start and used in updateScene
         this.meshes = []
@@ -58,22 +73,17 @@ class PageApp extends XRExampleBase {
 
         // for basic map stuff
         this.myAnchor = null;
-        
-        let secret = Reveal.getConfig().multiplex.secret;
-        this.isMaster = !(typeof secret == 'undefined' || secret == null || secret === '') ;
 
         // has openCV loaded?
         this.doCV = false;
         this.openCVready = false;
         this.cvStatusTxt = "";
 
+        this.spinCount = 1;
+
         this.triggerResize = true;
 
         this.anchorBlastCounter = 0;
-
-        window.addEventListener('resize', () => {
-            this.triggerResize = true;
-        })
 
         this.colors = [
             0xff4422,
@@ -116,6 +126,159 @@ class PageApp extends XRExampleBase {
         effectFilm.renderToScreen = true;
         // this.composer.addPass( effectFocus );
         // effectFocus.renderToScreen = true;
+
+
+        // Add a box at the scene origin
+        let box = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
+            new THREE.MeshPhongMaterial({ color: '#DDFFDD' })
+        )
+        box.position.set(0, 0, 0)
+        this.floorGroup.add(box)
+
+        // Add a few lights
+        this.scene.add(new THREE.AmbientLight('#FFF', 0.2))
+        let directionalLight = new THREE.DirectionalLight('#FFF', 0.6)
+        directionalLight.position.set(0, 10, 0)
+        this.scene.add(directionalLight)
+
+        this.scene.background = null;
+        
+        // something for the shared anchor
+        this.sharedAnchorNode = new THREE.Group()
+        let box2 = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(0.06, 0.06, 0.06),
+            new THREE.MeshPhongMaterial({ color: '#FF00DD' })
+        )
+        box2.position.set(0, 0, 0)
+        //this.sharedAnchorNode.add(box2)
+
+        // something else for the shared anchor
+        this.dynamicSharedAnchorNode = new THREE.Group()
+        var geometry = new THREE.SphereGeometry( 0.05, 10, 7 );
+        var material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
+        //this.dynamicSharedAnchorNode.add( new THREE.Mesh( geometry, material ) );
+
+        this.sharedAnchorNode.add(this.dynamicSharedAnchorNode)
+        this.dynamicSharedAnchorNode.matrixAutoUpdate = false;
+
+        // Create the environment map
+        const path = './resources/webxr/examples/textures/Park2/'
+        const format = '.jpg'
+        this.envMap = new THREE.CubeTextureLoader().load([
+            path + 'posx' + format, path + 'negx' + format,
+            path + 'posy' + format, path + 'negy' + format,
+            path + 'posz' + format, path + 'negz' + format
+        ])
+        this.envMap.format = THREE.RGBFormat
+        //this.scene.background = this.envMap
+
+        // Add the boom box
+        this.spinCount++;
+        loadGLTF('./resources/webxr/examples/models/BoomBox/glTF-pbrSpecularGlossiness/BoomBox.gltf').then(gltf => {
+            this.decrementSpin();
+            gltf.scene.scale.set(15, 15, 15)
+            gltf.scene.position.set(0, 1, -0.6)
+            gltf.scene.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
+
+            gltf.scene.traverse(node => {
+                if (node.material && (node.material.isMeshStandardMaterial || (node.material.isShaderMaterial && node.material.envMap !== undefined))){
+                    node.material.envMap = this.envMap
+                        node.material.needsUpdate = true
+                }
+            })
+            this.boomBox = gltf.scene;
+            this.floorGroup.add(gltf.scene)
+        }).catch((...params) =>{
+            console.error('could not load gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        loadGLTF('./resources/models/DuckyMesh.glb').then(gltf => {
+            this.ducky = gltf.scene;
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load ducky gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.stone = new THREE.Group();
+        this.dynamicSharedAnchorNode.add(this.stone)
+        loadGLTF('./resources/models/crystal_stone/scene.gltf').then(gltf => {
+            this.stone.add(gltf.scene);
+            gltf.scene.scale.set(0.025,0.025, 0.025)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load stone gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.crate = new THREE.Group();
+        this.sharedAnchorNode.add(this.crate)
+        loadGLTF('./resources/models/sci-fi_crate/scene.gltf').then(gltf => {
+            this.crate.add(gltf.scene);
+            gltf.scene.scale.set(0.05,0.05, 0.05)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load crate gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.trees = [];
+        this.trees[0] = new THREE.Group();
+        loadGLTF('./resources/models/birch_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[0].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load birch gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.trees[1] = new THREE.Group();
+        loadGLTF('./resources/models/grassland_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[1].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load grassland tree gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.trees[2] = new THREE.Group();
+        loadGLTF('./resources/models/pine_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[2].add(gltf.scene);
+            gltf.scene.scale.set(0.001,0.001, 0.001)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load pine tree gltf', ...params)
+            this.decrementSpin();
+        })
+
+        this.spinCount++;
+        this.trees[3] = new THREE.Group();
+        loadGLTF('./resources/models/police_officer_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
+            this.trees[3].add(gltf.scene);
+            gltf.scene.scale.set(0.003,0.003, 0.003)
+            this.decrementSpin();
+        }).catch((...params) =>{
+            console.error('could not load police officer gltf', ...params)
+            this.decrementSpin();
+        })
+        // loadGLTF('./resources/models/the_sims_-_plumbob/scene.gltf').then(gltf => {
+        //     this.plumbbob = gltf.scene;
+        //     gltf.scene.scale.set(0.001,0.001, 0.001)
+
+        //     this.dynamicSharedAnchorNode.add(this.plumbbob)
+        // }).catch((...params) =>{
+        //     console.error('could not load plumbob gltf', ...params)
+        // })
     }
 
     newSession() {					
@@ -157,7 +320,7 @@ class PageApp extends XRExampleBase {
                     break;
 
                 case "cvReady":
-                    spinner.stop()
+                    this.decrementSpin();
                     console.log('OpenCV.js is ready');
                     //this.session.startVideoFrames();
                     this.openCVready = true				
@@ -178,6 +341,13 @@ class PageApp extends XRExampleBase {
         this.session.addEventListener(XRSession.NEW_WORLD_ANCHOR, this._handleNewWorldAnchor.bind(this))
         this.session.addEventListener(XRSession.REMOVE_WORLD_ANCHOR, this._handleRemoveWorldAnchor.bind(this))
         this.session.addEventListener(XRSession.TRACKING_CHANGED, this._handleTrackingChanged.bind(this))
+    }
+
+    decrementSpin() {
+        this.spinCount--;
+        if (this.spinCount === 0) {
+            spinner.stop()
+        }
     }
 
     setDoCV (doit) {
@@ -206,7 +376,7 @@ class PageApp extends XRExampleBase {
 
     _handleRemoveWorldAnchor(event) {
         let anchor = event.detail
-        console.log("removed anchor ", anchor.uid)
+        //console.log("removed anchor ", anchor.uid)
 
         if (anchor.uid == "my-first-anchor") {
             this.myAnchor = null
@@ -243,15 +413,20 @@ class PageApp extends XRExampleBase {
                 this.tempMat.premultiply(this.tempMat2)
                 RevealMultiARClient.updateAnchor(this.tempMat.elements)
 
-                const anchor = frame.getAnchor(this.myAnchor.anchorUID)
-                if (anchor != null){
-                    console.log("my anchor pose: ", this.myAnchor.getOffsetTransform(anchor.coordinateSystem))
-                }
-                
+                //const anchor = frame.getAnchor(this.myAnchor.anchorUID)
+                //if (anchor != null){
+                //    console.log("my anchor pose: ", this.myAnchor.getOffsetTransform(anchor.coordinateSystem))
+                //}                
             }
         }
 
+        var SPEED = 0.01;
 
+        this.stone.rotation.x -= SPEED * 2;
+        this.stone.rotation.y -= SPEED;
+        this.stone.rotation.z -= SPEED * 3;
+        
+        
         // #define WEB_AR_TRACKING_STATE_NORMAL               @"ar_tracking_normal"
         // #define WEB_AR_TRACKING_STATE_LIMITED              @"ar_tracking_limited"
         // #define WEB_AR_TRACKING_STATE_LIMITED_INITIALIZING @"ar_tracking_limited_initializing"
@@ -259,34 +434,34 @@ class PageApp extends XRExampleBase {
         // #define WEB_AR_TRACKING_STATE_LIMITED_FEATURES     @"ar_tracking_limited_insufficient_features"
         // #define WEB_AR_TRACKING_STATE_NOT_AVAILABLE        @"ar_tracking_not_available"
         // #define WEB_AR_TRACKING_STATE_RELOCALIZING         @"ar_tracking_relocalizing"
-        var msgText = "";
+        var msgText = (this.spinCount > 0) ? "Downloading " + this.spinCount.toString() + " items<br>" : "";
         switch (this.trackingState) {
             case "unknown": // the initial value
             case "ar_tracking_normal":
             break;
 
             case "ar_tracking_limited":
-                msgText = "Spatial Tracking <em>Functionality is Limited<em>"
+                msgText += "Spatial Tracking <em>Functionality is Limited<em>"
             break;
     
             case "ar_tracking_limited_initializing":
-                msgText = "Spatial Tracking <em>Initializing</em>"
+                msgText += "Spatial Tracking <em>Initializing</em>"
             break;
         
             case "ar_tracking_limited_excessive_motion":
-                msgText = "Spatial Tracking <em>Too Much Motion</em>"
+                msgText += "Spatial Tracking <em>Too Much Motion</em>"
             break;
             
             case "ar_tracking_limited_insufficient_features":
-                msgText = "Spatial Tracking <em>Too Much Motion</em>"
+                msgText += "Spatial Tracking <em>Too Much Motion</em>"
             break;
             
             case "ar_tracking_not_available":
-                msgText = "Spatial Tracking <b>Unavailable</b>"        
+                msgText += "Spatial Tracking <b>Unavailable</b>"        
             break;
 
             case "ar_tracking_relocalizing":
-                msgText = "Spatial Tracking <b>Relocalizing</b><br>If relocalization does not succeed,<br>reset tracking system from menu"        
+                msgText += "Spatial Tracking <b>Relocalizing</b><br>If relocalization does not succeed,<br>reset tracking system from menu"        
             break;
         }
         //console.log ("tracking state: " + msgText)
@@ -312,7 +487,15 @@ class PageApp extends XRExampleBase {
             }).catch(err => {
                 console.error('Could not set world Map', err)
             })
+            sharedState.savedWorldMap = sharedState.setWorldMap;
             sharedState.setWorldMap = null
+        }
+
+        if (sharedState.anchorUpdateFromPlayer > 0) {
+            this.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
+            this.dynamicSharedAnchorNode.matrix.fromArray(sharedState.anchorUpdate); 
+            sharedState.anchorUpdateFromPlayer = -1;
+            sharedState.anchorUpdate = null;
         }
 
         // only do this in the master!  
@@ -378,6 +561,9 @@ class PageApp extends XRExampleBase {
                         this.session.getWorldMap().then(worldMap => {
                             console.log("got worldMap, size = ", worldMap.worldMap.length)
 
+                            // save it so we can load it later
+                            sharedState.savedWorldMap = worldMap
+
                             for (var i=0; i < worldMap.anchors.length; i++) {
                                 console.log("anchor: ", worldMap.anchors[i].name, "  pose: ", worldMap.anchors[i].transform )
                             }
@@ -389,6 +575,7 @@ class PageApp extends XRExampleBase {
                     
             }
         }
+
         if (msgText.length > 0 && sharedState.xrSlide) {
             this.textBox.innerHTML = msgText
             this.textBox.style.visibility = "visible";
@@ -396,6 +583,7 @@ class PageApp extends XRExampleBase {
             this.textBox.style.visibility = "hidden";
         }
 
+        // image tracking
         if (this.markers.length > 0) {
             var m = this.markers[0].pose;
             var c = this.camPose
@@ -575,140 +763,22 @@ class PageApp extends XRExampleBase {
 			}).catch(err => {
 				console.error('Error in hit test', err)
 			})
-		}
-    }
-
-    // Called during construction to allow the app to populate this.scene
-    initializeScene(){
-        // Add a box at the scene origin
-        let box = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
-            new THREE.MeshPhongMaterial({ color: '#DDFFDD' })
-        )
-        box.position.set(0, 0, 0)
-        this.floorGroup.add(box)
-
-        // Add a few lights
-        this.scene.add(new THREE.AmbientLight('#FFF', 0.2))
-        let directionalLight = new THREE.DirectionalLight('#FFF', 0.6)
-        directionalLight.position.set(0, 10, 0)
-        this.scene.add(directionalLight)
-
-        this.scene.background = null;
+        }
         
-        // something for the shared anchor
-        this.sharedAnchorNode = new THREE.Group()
-        let box2 = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(0.06, 0.06, 0.06),
-            new THREE.MeshPhongMaterial({ color: '#FF00DD' })
-        )
-        box2.position.set(0, 0, 0)
-        //this.sharedAnchorNode.add(box2)
-
-        // something else for the shared anchor
-        this.dynamicSharedAnchorNode = new THREE.Group()
-        var geometry = new THREE.SphereGeometry( 0.05, 10, 7 );
-        var material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
-        //this.dynamicSharedAnchorNode.add( new THREE.Mesh( geometry, material ) );
-
-        this.sharedAnchorNode.add(this.dynamicSharedAnchorNode)
-        this.dynamicSharedAnchorNode.matrixAutoUpdate = false;
-
-        // Create the environment map
-        const path = './resources/webxr/examples/textures/Park2/'
-        const format = '.jpg'
-        this.envMap = new THREE.CubeTextureLoader().load([
-            path + 'posx' + format, path + 'negx' + format,
-            path + 'posy' + format, path + 'negy' + format,
-            path + 'posz' + format, path + 'negz' + format
-        ])
-        this.envMap.format = THREE.RGBFormat
-        //this.scene.background = this.envMap
-
-        // Add the boom box
-        loadGLTF('./resources/webxr/examples/models/BoomBox/glTF-pbrSpecularGlossiness/BoomBox.gltf').then(gltf => {
-            gltf.scene.scale.set(15, 15, 15)
-            gltf.scene.position.set(0, 1, -0.6)
-            gltf.scene.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)
-
-            gltf.scene.traverse(node => {
-                if (node.material && (node.material.isMeshStandardMaterial || (node.material.isShaderMaterial && node.material.envMap !== undefined))){
-                    node.material.envMap = this.envMap
-                        node.material.needsUpdate = true
+        // leave the anchors, how many are we really going to create during a presentation?
+        // (can fix that later)
+        if (sharedState.clearPlaced) {
+            sharedState.clearPlaced = false
+            for (var i = 0; i < this.trees.length; i++) {
+                if (this.trees[i].parent) {
+                    this.trees[i].parent.remove(this.trees[i]);
                 }
-            })
+            }
+        }   
 
-            this.boomBox = gltf.scene;
-            this.floorGroup.add(gltf.scene)
-        }).catch((...params) =>{
-            console.error('could not load gltf', ...params)
-        })
-        loadGLTF('./resources/models/DuckyMesh.glb').then(gltf => {
-            this.ducky = gltf.scene;
-        }).catch((...params) =>{
-            console.error('could not load ducky gltf', ...params)
-        })
-
-        this.stone = new THREE.Group();
-        this.dynamicSharedAnchorNode.add(this.stone)
-        loadGLTF('./resources/models/crystal_stone/scene.gltf').then(gltf => {
-            this.stone.add(gltf.scene);
-            gltf.scene.scale.set(0.025,0.025, 0.025)
-        }).catch((...params) =>{
-            console.error('could not load stone gltf', ...params)
-        })
-
-        this.crate = new THREE.Group();
-        this.sharedAnchorNode.add(this.crate)
-        loadGLTF('./resources/models/sci-fi_crate/scene.gltf').then(gltf => {
-            this.crate.add(gltf.scene);
-            gltf.scene.scale.set(0.05,0.05, 0.05)
-        }).catch((...params) =>{
-            console.error('could not load crate gltf', ...params)
-        })
-
-        this.trees = [];
-        this.trees[0] = new THREE.Group();
-        loadGLTF('./resources/models/birch_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
-            this.trees[0].add(gltf.scene);
-            gltf.scene.scale.set(0.001,0.001, 0.001)
-        }).catch((...params) =>{
-            console.error('could not load birch gltf', ...params)
-        })
-
-        this.trees[1] = new THREE.Group();
-        loadGLTF('./resources/models/grassland_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
-            this.trees[1].add(gltf.scene);
-            gltf.scene.scale.set(0.001,0.001, 0.001)
-        }).catch((...params) =>{
-            console.error('could not load grassland tree gltf', ...params)
-        })
-
-        this.trees[2] = new THREE.Group();
-        loadGLTF('./resources/models/pine_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
-            this.trees[2].add(gltf.scene);
-            gltf.scene.scale.set(0.001,0.001, 0.001)
-        }).catch((...params) =>{
-            console.error('could not load pine tree gltf', ...params)
-        })
-
-        this.trees[3] = new THREE.Group();
-        loadGLTF('./resources/models/police_officer_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
-            this.trees[3].add(gltf.scene);
-            gltf.scene.scale.set(0.003,0.003, 0.003)
-        }).catch((...params) =>{
-            console.error('could not load police officer gltf', ...params)
-        })
-
-        // loadGLTF('./resources/models/the_sims_-_plumbob/scene.gltf').then(gltf => {
-        //     this.plumbbob = gltf.scene;
-        //     gltf.scene.scale.set(0.001,0.001, 0.001)
-
-        //     this.dynamicSharedAnchorNode.add(this.plumbbob)
-        // }).catch((...params) =>{
-        //     console.error('could not load plumbob gltf', ...params)
-        // })
     }
+
+
 
     createSceneGraphNode(){
         const group = new THREE.Group()
@@ -782,7 +852,6 @@ class PageApp extends XRExampleBase {
     }
 }
 
-
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
@@ -800,9 +869,11 @@ Reveal.addEventListener('ready', () => {
     }
 
     RevealMultiARClient.anchorUpdate = 	function (playerId, anchor) {
-        console.log("received Anchor Update: ", playerId, ", ", anchor)
-        window.pageApp.dynamicSharedAnchorNode.matrix.fromArray(anchor); 
-        window.pageApp.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
+        //console.log("received Anchor Update: ", playerId, ", ", anchor)
+        sharedState.anchorUpdateFromPlayer = playerId;
+        sharedState.anchorUpdate = anchor;
+        // window.pageApp.dynamicSharedAnchorNode.matrix.fromArray(anchor); 
+        // window.pageApp.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
 	}
 })
 
@@ -811,6 +882,16 @@ Reveal.addEventListener('ready', () => {
 var updateSharedState = function (states) {
     var xrSession = document.querySelector('.webxr-sessions');
     var xrReality = document.querySelector('.webxr-realities');
+
+    if (states.indexOf("xrReloadMap") >= 0) {
+        if (sharedState.savedWorldMap) {
+            sharedState.setWorldMap = sharedState.savedWorldMap 
+        }
+    }
+
+    if (states.indexOf("xrClearPlaced") >= 0) {
+        sharedState.clearPlaced = true
+    }
 
     if (states.indexOf("xrslide") < 0) {
         sharedState.xrSlide = false;
@@ -862,6 +943,7 @@ Reveal.addEventListener( 'ready', function( event ) {
         states = slideState.split( ' ' );
     }
     updateSharedState(states)
+    sharedState.prevGetMap = 0;
 } );
 
 
