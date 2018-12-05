@@ -33,18 +33,25 @@ io.on( 'connection', function( socket ) {
 		if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
 		if (createHash(data.secret) === data.socketId) {
 			data.secret = null;
+			console.log("slide changed")
 			socket.broadcast.emit(data.socketId, 'multiplex-statechanged', data);
 		};
 	});
 	socket.on('multiplex-newmap', function(data) {
-		if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
+		console.log("new map command....");
+		if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') {
+			console.log("new map from client (secret invalid)");
+			return;
+		}
 		if (createHash(data.secret) === data.socketId) {
-			console.log("new map!")
+			console.log("new map! size " + data.map.worldMap.length.toString() + " bytes, with " + data.map.anchors.length.toString() + "anchors" )
 			data.secret = null;
 			if (data.map) {
-				worldMap = data;
+				worldMap = data.map;
 				socket.broadcast.emit(data.socketId, 'multiplex-newmap', data);
 			}
+		} else {
+			console.log("new map command from wrong socket");
 		}
 	});
 	socket.on('multiplex-anchor-update', function(data) {
@@ -52,6 +59,11 @@ io.on( 'connection', function( socket ) {
 		socket.broadcast.emit(data.socketId, 'multiplex-anchor-update', data);
 	});
 	
+	socket.on('multiplex-add-anchor', function(data) {
+		// if (typeof data.secret == 'undefined' || data.secret == null || data.secret === '') return;
+		console.log("add anchor ", data.index, data.pos, data.quat)
+		socket.broadcast.emit(data.socketId, 'multiplex-add-anchor', data);
+	});		
 });
 
 [ 'css', 'js', 'plugin', 'lib' ].forEach(function(dir) {

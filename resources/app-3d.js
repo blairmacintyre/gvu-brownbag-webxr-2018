@@ -17,6 +17,8 @@ var sharedState = {
     setWorldMap: null,
     savedWorldMap: null,
     clearPlaced: false,
+    anchorUpdate: null,
+    addAnchor: null,
     arCollab: false,
     doProcessing: true,
     showBoomBox: false,
@@ -80,7 +82,7 @@ class PageApp extends XRExampleBase {
         this.myAnchor = null;
 
         // has openCV loaded?
-        this.doCV = false;
+        this.doCV = true;
         this.openCVready = false;
         this.cvStatusTxt = "";
 
@@ -234,6 +236,9 @@ class PageApp extends XRExampleBase {
         })
 
         this.spinCount++;
+
+        // set up an array of things we can click on
+        this.treesIndex = 0;
         this.trees = [];
         this.trees[0] = new THREE.Group();
         loadGLTF('./resources/models/birch_tree_-_smashy_craft_series_-_free/scene.gltf').then(gltf => {
@@ -410,7 +415,7 @@ class PageApp extends XRExampleBase {
     // Called once per frame, before render, to give the app a chance to update this.scene
 	updateScene(frame){
         if (this.anchorBlastCounter-- < 0) {
-            this.anchorBlastCounter = sharedState.arCollab ? 4 : 60;
+            this.anchorBlastCounter = sharedState.arCollab ? 60 : 240;
 
             if (this.myAnchor) {
                 this.tempMat.fromArray(frame.views[0].viewMatrix)
@@ -509,10 +514,9 @@ class PageApp extends XRExampleBase {
             sharedState.setWorldMap = null
         }
 
-        if (sharedState.anchorUpdateFromPlayer > 0) {
+        if (sharedState.anchorUpdate > 0) {
             this.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
-            this.dynamicSharedAnchorNode.matrix.fromArray(sharedState.anchorUpdate); 
-            sharedState.anchorUpdateFromPlayer = -1;
+            this.dynamicSharedAnchorNode.matrix.fromArray(sharedState.anchorUpdate.anchor); 
             sharedState.anchorUpdate = null;
         }
 
@@ -778,21 +782,27 @@ class PageApp extends XRExampleBase {
 				}
                 console.log('hit', anchorOffset)
                 
-                const worldCoordinates = frame.getCoordinateSystem(XRCoordinateSystem.TRACKER)
                 var anchor = frame.getAnchor(anchorOffset.anchorUID)					
                 this.tempMat.fromArray(anchorOffset.getOffsetTransform(anchor.coordinateSystem))
                 this.tempMat.decompose(this.tempPos,this.tempQuaternion, this.tempScale); 
+               
+                this.createSceneGraphNode(frame, this.tempPos, this.tempQuaternion, this.treesIndex);
+                RevealMultiARClient.addNewAnchor(this.tempPos, this.tempQuaternion, this.treesIndex)
 
-                const anchorUID = frame.addAnchor(worldCoordinates, [this.tempPos.x, this.tempPos.y, this.tempPos.z], [this.tempQuaternion.x, this.tempQuaternion.y, this.tempQuaternion.z, this.tempQuaternion.w])
-                this.addAnchoredNode(new XRAnchorOffset(anchorUID), this.createSceneGraphNode())
-                
-                
-				//this.addAnchoredNode(anchorOffset, this.createSceneGraphNode())
-			}).catch(err => {
+                this.treesIndex++;
+                if (this.treesIndex >= this.trees.length) {
+                    this.treesIndex = 0;
+                }                
+            }).catch(err => {
 				console.error('Error in hit test', err)
 			})
         }
         
+        if (sharedState.addAnchor) {
+            this.createSceneGraphNode(frame, sharedState.addAnchor.pos, sharedState.addAnchor.quat, sharedState.addAnchor.index);
+            sharedState.addAnchor = null;
+        }
+
         // leave the anchors, how many are we really going to create during a presentation?
         // (can fix that later)
         if (sharedState.clearPlaced) {
@@ -808,12 +818,15 @@ class PageApp extends XRExampleBase {
 
 
 
-    createSceneGraphNode(){
+    createSceneGraphNode(frame, pos, quat, index){
+        const worldCoordinates = frame.getCoordinateSystem(XRCoordinateSystem.TRACKER)
+        const anchorUID = frame.addAnchor(worldCoordinates, [pos.x, pos.y, pos.z], [quat._x, quat._y, quat._z, quat._w])
+
         const group = new THREE.Group()
-        var model = this.trees.shift();
-        this.trees.push(model)
+        var model = this.trees[index];
         group.add(model);
-        return group
+
+        this.addAnchoredNode(new XRAnchorOffset(anchorUID), group)
     }
 
     // createSceneGraphNode(){
@@ -896,10 +909,12 @@ Reveal.addEventListener('ready', () => {
         sharedState.setWorldMap = worldMap;
     }
 
+    RevealMultiARClient.addAnchor = function (playerId, index, pos, quat) {
+        sharedState.addAnchor = { playerId: playerId, index: index, pos: pos, quat: quat };
+    }
     RevealMultiARClient.anchorUpdate = 	function (playerId, anchor) {
         //console.log("received Anchor Update: ", playerId, ", ", anchor)
-        sharedState.anchorUpdateFromPlayer = playerId;
-        sharedState.anchorUpdate = anchor;
+        sharedState.anchorUpdate = {  playerId: playerId, anchor: anchor };
         // window.pageApp.dynamicSharedAnchorNode.matrix.fromArray(anchor); 
         // window.pageApp.dynamicSharedAnchorNode.matrixWorldNeedsUpdate = true
 	}

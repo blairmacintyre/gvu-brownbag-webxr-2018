@@ -68,6 +68,13 @@
 					if (this.anchorUpdate) {
 						this.anchorUpdate(data.playerId, data.anchor)
 					}
+				} else if (cmd == 'multiplex-add-anchor') {
+					if (this.addAnchor) {
+						if (data.playerId != multiplex.playerId) {
+							console.log("received add anchor ", data.index, data.pos, data.quat)
+							this.addAnchor(data.playerId, data.index, data.pos, data.quat)
+						}
+					}
 				}
 			});
 		},
@@ -83,9 +90,24 @@
 			socket.emit( 'multiplex-anchor-update', messageData );
 		},
 
+		addNewAnchor: function(pos, quat, index) {
+			var messageData = {
+				index: index, 
+				pos: pos,
+				quat: quat,
+				socketId: multiplex.id,
+				secret: multiplex.secret,
+				playerId: multiplex.playerId
+			};
+			console.log("sending add anchor ", messageData.index, messageData.pos, messageData.quat)
+
+			socket.emit( 'multiplex-add-anchor', messageData );
+		},
+
 		// TODO: Do these belong in the API?
 		setWorldMap: null,
-		anchorUpdate: null
+		anchorUpdate: null,
+		addAnchor: null
 	};
 
 }));

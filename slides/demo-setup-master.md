@@ -45,3 +45,18 @@ Wait for things to stablize.
 <br>
 <br>
 <br>
+------
+<!-- .slide: data-state="xrslide arslide 3deffects boombox xrReloadMap xrClearPlaced xrCollab" style="text-align: left;" -->
+
+<h2>Simple Shared WebXR content using ARKit World Maps</h2>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
